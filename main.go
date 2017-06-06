@@ -12,9 +12,10 @@ import (
 	"strings"
 )
 
-const HOST = "https://example.com"
+var HOST string
 
 func main() {
+	HOST = os.Args[2]
 	f, err := os.Open(os.Args[1])
 	if err != nil {
 		log.Fatal(err)
@@ -34,7 +35,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	outputPath := os.Args[2]
+	outputPath := os.Args[3]
 	os.MkdirAll(outputPath, os.ModePerm)
 
 	docs := buildPaginatedIndexDocuments(resourceType, header, rows, 5)
@@ -44,11 +45,15 @@ func main() {
 			log.Fatal(err)
 		}
 		var out string
+		// if i == 0, we build 2 files: type.json and type-0.json for pagination
 		if i == 0 {
 			out = filepath.Join(outputPath, fmt.Sprintf("%s.json", resourceType))
-		} else {
-			out = filepath.Join(outputPath, fmt.Sprintf("%s-%d.json", resourceType, i))
+			err = ioutil.WriteFile(out, bytes, os.ModePerm)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
+		out = filepath.Join(outputPath, fmt.Sprintf("%s-%d.json", resourceType, i))
 		err = ioutil.WriteFile(out, bytes, os.ModePerm)
 		if err != nil {
 			log.Fatal(err)
@@ -69,6 +74,10 @@ func main() {
 			log.Fatal(err)
 		}
 	}
+
+	// build rewrites
+	rewrites := fmt.Sprintf("/%s.json page=:p /%s-:p.json 200!\n", resourceType, resourceType)
+	ioutil.WriteFile(filepath.Join(outputPath, "_redirects"), []byte(rewrites), os.ModePerm)
 }
 
 type Document struct {
@@ -109,7 +118,7 @@ func buildPaginatedIndexDocuments(objType string, header []string, rows [][]stri
 	// set meta
 	for i := range docs {
 		docs[i].Meta = map[string]interface{}{
-			"total": len(docs),
+			"total-pages": len(docs),
 		}
 	}
 	// set links
