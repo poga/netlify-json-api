@@ -1,6 +1,6 @@
 # netlify-rest-api
 
-Build a RESTful JSON API on Netlify.
+Build a RESTful JSON API from CSV on Netlify. Automatically create `_redirect` rules for you.
 
 `go get github.com/poga/netlify-rest-api`
 
@@ -27,7 +27,11 @@ netlify-rest-api users.csv http://YOUR-netlify-domain out/
 
 Deploy `out/` to netlify.
 
-Now you have a RESTful JSON API such as: `GET http://YOUR-netlify-domain/users.json`, `GET http://YOUR-netlify-domain/users.json?page=1` and `GET http://YOUR-netlify-domain/users/1.json`
+Now you have a RESTful JSON API! Try these URLs:
+
+* `GET http://YOUR-netlify-domain/users.json`
+* `GET http://YOUR-netlify-domain/users.json?page=1`
+* `GET http://YOUR-netlify-domain/users/1.json`
 
 
 ## Todos:
