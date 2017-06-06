@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -33,14 +34,41 @@ func main() {
 		log.Fatal(err)
 	}
 
+	outputPath := os.Args[2]
+	os.MkdirAll(outputPath, os.ModePerm)
+
 	docs := buildPaginatedIndexDocuments(resourceType, header, rows, 5)
-	bytes, err := json.Marshal(docs)
-	fmt.Println(string(bytes[:]))
+	for i, doc := range docs {
+		bytes, err := json.Marshal(doc)
+		if err != nil {
+			log.Fatal(err)
+		}
+		var out string
+		if i == 0 {
+			out = filepath.Join(outputPath, fmt.Sprintf("%s.json", resourceType))
+		} else {
+			out = filepath.Join(outputPath, fmt.Sprintf("%s-%d.json", resourceType, i))
+		}
+		err = ioutil.WriteFile(out, bytes, os.ModePerm)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 
 	objDocs := buildObjectDocuments(resourceType, header, rows)
-	bytes, err = json.Marshal(objDocs)
-	fmt.Println(string(bytes[:]))
-
+	for _, doc := range objDocs {
+		bytes, err := json.Marshal(doc)
+		if err != nil {
+			log.Fatal(err)
+		}
+		outDir := filepath.Join(outputPath, resourceType)
+		os.MkdirAll(outDir, os.ModePerm)
+		out := filepath.Join(outDir, fmt.Sprintf("%s.json", doc.Data[0].ID))
+		err = ioutil.WriteFile(out, bytes, os.ModePerm)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 }
 
 type Document struct {
