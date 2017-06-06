@@ -118,7 +118,7 @@ func buildPaginatedIndexDocuments(objType string, header []string, rows [][]stri
 		if i > 0 {
 			links["prev"] = fmt.Sprintf("%s/%s.json?page=%d", HOST, objType, i-1)
 		}
-		if i <= len(docs)-1 {
+		if i < len(docs)-1 {
 			links["next"] = fmt.Sprintf("%s/%s.json?page=%d", HOST, objType, i+1)
 		}
 
