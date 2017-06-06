@@ -11,6 +11,8 @@ import (
 	"strings"
 )
 
+const HOST = "https://example.com"
+
 func main() {
 	f, err := os.Open(os.Args[1])
 	if err != nil {
@@ -32,14 +34,18 @@ func main() {
 	}
 
 	docs := buildPaginatedIndexDocuments(resourceType, header, rows, 5)
-	fmt.Printf("%v\n", docs)
 	bytes, err := json.Marshal(docs)
 	fmt.Println(string(bytes[:]))
+
+	objDocs := buildObjectDocuments(resourceType, header, rows)
+	bytes, err = json.Marshal(objDocs)
+	fmt.Println(string(bytes[:]))
+
 }
 
 type Document struct {
-	Meta  map[string]interface{} `json:"meta"`
-	Links map[string]string      `json:"links"`
+	Meta  map[string]interface{} `json:"meta,omitempty"`
+	Links map[string]string      `json:"links,omitempty"`
 	Data  []Object               `json:"data"`
 }
 
@@ -49,16 +55,12 @@ type Object struct {
 	Attributes map[string]string `json:"attributes"`
 }
 
-func buildPaginatedIndexDocuments(objType string, header []string, rows [][]string, pageSize int) *[]Document {
+func buildPaginatedIndexDocuments(objType string, header []string, rows [][]string, pageSize int) []Document {
 	var docs []Document
 
 	var objs []Object
 	for _, row := range rows {
-		obj := Object{Type: objType}
-		kv := row2map(header, row)
-		obj.ID = kv["id"]
-		delete(kv, "id")
-		obj.Attributes = kv
+		obj := buildObject(objType, header, row)
 
 		objs = append(objs, obj)
 
@@ -86,18 +88,40 @@ func buildPaginatedIndexDocuments(objType string, header []string, rows [][]stri
 	for i := range docs {
 		links := make(map[string]string)
 		if i > 0 {
-			links["prev"] = fmt.Sprintf("/%s.json?page=%d", objType, i-1)
+			links["prev"] = fmt.Sprintf("%s/%s.json?page=%d", HOST, objType, i-1)
 		}
 		if i <= len(docs)-1 {
-			links["next"] = fmt.Sprintf("/%s.json?page=%d", objType, i+1)
+			links["next"] = fmt.Sprintf("%s/%s.json?page=%d", HOST, objType, i+1)
 		}
 
-		links["first"] = fmt.Sprintf("/%s.json?page=0", objType)
-		links["last"] = fmt.Sprintf("/%s.json?page=%d", objType, len(docs)-1)
+		links["first"] = fmt.Sprintf("%s/%s.json?page=0", HOST, objType)
+		links["last"] = fmt.Sprintf("%s/%s.json?page=%d", HOST, objType, len(docs)-1)
 		docs[i].Links = links
 	}
 
-	return &docs
+	return docs
+}
+
+func buildObjectDocuments(objType string, header []string, rows [][]string) []Document {
+	var docs []Document
+
+	for _, row := range rows {
+		obj := buildObject(objType, header, row)
+		doc := Document{Data: []Object{obj}}
+		docs = append(docs, doc)
+	}
+
+	return docs
+}
+
+func buildObject(objType string, header []string, row []string) Object {
+	obj := Object{Type: objType}
+	kv := row2map(header, row)
+	obj.ID = kv["id"]
+	delete(kv, "id")
+	obj.Attributes = kv
+
+	return obj
 }
 
 // row2map normalize each columns name and build a map for the row
