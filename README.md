@@ -1,8 +1,6 @@
 # netlify-rest-api
 
-Build a RESTful JSON API from CSV on Netlify.
-
-Automatically create `_redirect` rules for you. Based on [JSON API](http://jsonapi.org/) spec.
+Publish your CSV as a RESTful JSON API on [Netlify](https://netlify.com), using the [JSON API](http://jsonapi.org/) spec.
 
 `go get github.com/poga/netlify-rest-api`
 
