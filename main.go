@@ -48,13 +48,13 @@ func main() {
 		// if i == 0, we build 2 files: type.json and type-0.json for pagination
 		if i == 0 {
 			out = filepath.Join(outputPath, fmt.Sprintf("%s.json", resourceType))
-			err = ioutil.WriteFile(out, bytes, os.ModePerm)
+			err = ioutil.WriteFile(out, bytes, 0664)
 			if err != nil {
 				log.Fatal(err)
 			}
 		}
 		out = filepath.Join(outputPath, fmt.Sprintf("%s-%d.json", resourceType, i))
-		err = ioutil.WriteFile(out, bytes, os.ModePerm)
+		err = ioutil.WriteFile(out, bytes, 0664)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -69,7 +69,7 @@ func main() {
 		outDir := filepath.Join(outputPath, resourceType)
 		os.MkdirAll(outDir, os.ModePerm)
 		out := filepath.Join(outDir, fmt.Sprintf("%s.json", doc.Data[0].ID))
-		err = ioutil.WriteFile(out, bytes, os.ModePerm)
+		err = ioutil.WriteFile(out, bytes, 0664)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -77,7 +77,7 @@ func main() {
 
 	// build rewrites
 	rewrites := fmt.Sprintf("/%s.json page=:p /%s-:p.json 200!\n", resourceType, resourceType)
-	ioutil.WriteFile(filepath.Join(outputPath, "_redirects"), []byte(rewrites), os.ModePerm)
+	ioutil.WriteFile(filepath.Join(outputPath, "_redirects"), []byte(rewrites), 0664)
 }
 
 type Document struct {
