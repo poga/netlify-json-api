@@ -38,6 +38,7 @@ Now you have a RESTful JSON API! Try these URLs:
 
 ## Todos:
 
+- [ ] Support other source data. sql? json?
 - [ ] programmically deploy to netlify
 - [ ] `POST`, `PUT`, and `DELETE` with proxy
 
