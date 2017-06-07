@@ -36,7 +36,7 @@ Now you have a RESTful JSON API! Try these URLs:
 * `GET http://YOUR-netlify-domain/users/1.json`
 
 
-## Todos:
+## Todos
 
 - [ ] Support other source data. sql? json?
 - [ ] programmically deploy to netlify
