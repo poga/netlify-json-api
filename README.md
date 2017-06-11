@@ -1,6 +1,8 @@
-# netlify-rest-api
+# static-api-gen
 
-Publish your CSV as a RESTful JSON API on [Netlify](https://netlify.com), using the [JSON API](http://jsonapi.org/) spec.
+Publish your data as static RESTful JSON API and website with [Netlify](https://netlify.com).
+
+## Install
 
 `go get github.com/poga/netlify-rest-api`
 
@@ -37,7 +39,7 @@ Now you have a RESTful JSON API! Try these URLs:
 ## Todos
 
 - [ ] Support other source data. sql? json?
-- [ ] programmically deploy to netlify
+- [ ] Auto deploy to netlify
 - [ ] `POST`, `PUT`, and `DELETE` with proxy
 
 ## License
