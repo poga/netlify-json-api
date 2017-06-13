@@ -1,6 +1,8 @@
-# static-api-gen
+# netlify-rest-api
 
-Publish your data as static RESTful JSON API and website with [Netlify](https://netlify.com).
+[![Go Report Card](https://goreportcard.com/badge/github.com/poga/netlify-rest-api)](https://goreportcard.com/report/github.com/poga/netlify-rest-api)
+
+Publish your data as static RESTful JSON API to [Netlify](https://netlify.com).
 
 ## Install
 
@@ -8,32 +10,21 @@ Publish your data as static RESTful JSON API and website with [Netlify](https://
 
 ## Usage
 
-First, prepare a CSV file named `users.csv`:
-
-```csv
-id,name,age
-1,John,12
-2,Marry,22
-3,Jeff,18
-4,Kate,30
-5,Jerry,19
-6,Alan,54
-7,Sandy,49
-```
-
-Run `netlify-rest-api`:
+Use our example:
 
 ```
-netlify-rest-api users.csv http://YOUR-netlify-domain out/
+$ git clone git@github.com:poga/netlify-rest-api.git
+$ cd netlify-rest-api/example
+$ netlify-rest-api users.csv http://YOUR-NETLIFY-DOMAIN out
 ```
 
-Deploy `out/` to netlify.
+Then, deploy `out` to netlify.
 
 Now you have a RESTful JSON API! Try these URLs:
 
-* `GET http://YOUR-netlify-domain/users.json`
-* `GET http://YOUR-netlify-domain/users.json?page=1`
-* `GET http://YOUR-netlify-domain/users/1.json`
+* `GET http://YOUR-NETLIFY-DOMAIN/users.json`
+* `GET http://YOUR-NETLIFY-DOMAIN/users.json?page=1`
+* `GET http://YOUR-NETLIFY-DOMAIN/users/1.json`
 
 
 ## Todos
