@@ -10,12 +10,28 @@ Publish your data as static RESTful JSON API to [Netlify](https://netlify.com).
 
 ## Usage
 
+```
+$ netlify-rest-api -h
+  -file string
+    	data file
+  -host string
+    	host domain
+  -id string
+    	ID column names (seperate by ",") (default "id")
+  -out string
+    	output directory
+  -perPage int
+    	items per page (default 10)
+  -type string
+    	resource type name
+```
+
 Use our example:
 
 ```
 $ git clone git@github.com:poga/netlify-rest-api.git
 $ cd netlify-rest-api/example
-$ netlify-rest-api users.csv http://YOUR-NETLIFY-DOMAIN out
+$ netlify-rest-api -file users.csv -host http://YOUR-NETLIFY-DOMAIN -out out
 ```
 
 Then, deploy `out` to netlify.

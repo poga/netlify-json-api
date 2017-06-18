@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/csv"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -12,61 +13,76 @@ import (
 	"strings"
 )
 
-var HOST string
-
 func main() {
-	HOST = os.Args[2]
-	f, err := os.Open(os.Args[1])
+	host := flag.String("host", "", "host domain")
+	file := flag.String("file", "", "data file")
+	resourceType := flag.String("type", "", "resource type name")
+	outputPath := flag.String("out", "", "output directory")
+	idKeys := flag.String("id", "id", "ID column names (seperate by \",\")")
+	perPage := flag.Int("perPage", 10, "items per page")
+	flag.Parse()
+	if *host == "" {
+		log.Fatal("host is required")
+	}
+	if *file == "" {
+		log.Fatal("file is required")
+	}
+	if *outputPath == "" {
+		log.Fatal("output path is required")
+	}
+	filename := path.Base(*file)
+	if *resourceType == "" {
+		inferType := filename[0 : len(filename)-len(filepath.Ext(filename))]
+		resourceType = &inferType
+	}
+	idKeysSlice := strings.Split(*idKeys, ",")
+
+	f, err := os.Open(*file)
 	if err != nil {
 		log.Fatal(err)
 	}
-	filename := path.Base(os.Args[1])
-	resourceType := filename[0 : len(filename)-len(filepath.Ext(filename))]
 
 	r := csv.NewReader(f)
+
 	// read header
 	header, err := r.Read()
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// read rows
 	rows, err := r.ReadAll()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	outputPath := os.Args[3]
-	os.MkdirAll(outputPath, os.ModePerm)
+	if err = os.RemoveAll(*outputPath); err != nil {
+		log.Fatal(err)
+	}
+	if err = os.MkdirAll(*outputPath, os.ModePerm); err != nil {
+		log.Fatal(err)
+	}
 
-	docs := buildPaginatedIndexDocuments(resourceType, header, rows, 5)
+	docs := buildPaginatedIndexDocuments(*host, *resourceType, header, rows, idKeysSlice, *perPage)
 	for i, doc := range docs {
 		bytes, err := json.Marshal(doc)
 		if err != nil {
 			log.Fatal(err)
 		}
-		var out string
-		// if i == 0, we build 2 files: type.json and type-0.json for pagination
-		if i == 0 {
-			out = filepath.Join(outputPath, fmt.Sprintf("%s.json", resourceType))
-			err = ioutil.WriteFile(out, bytes, 0664)
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
-		out = filepath.Join(outputPath, fmt.Sprintf("%s-%d.json", resourceType, i))
+		out := filepath.Join(*outputPath, fmt.Sprintf("%s-%d.json", *resourceType, i))
 		err = ioutil.WriteFile(out, bytes, 0664)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	objDocs := buildObjectDocuments(resourceType, header, rows)
+	objDocs := buildObjectDocuments(*resourceType, header, rows, idKeysSlice)
 	for _, doc := range objDocs {
 		bytes, err := json.Marshal(doc)
 		if err != nil {
 			log.Fatal(err)
 		}
-		outDir := filepath.Join(outputPath, resourceType)
+		outDir := filepath.Join(*outputPath, *resourceType)
 		os.MkdirAll(outDir, os.ModePerm)
 		out := filepath.Join(outDir, fmt.Sprintf("%s.json", doc.Data[0].ID))
 		err = ioutil.WriteFile(out, bytes, 0664)
@@ -76,8 +92,9 @@ func main() {
 	}
 
 	// build rewrites
-	rewrites := fmt.Sprintf("/%s.json page=:p /%s-:p.json 200!\n", resourceType, resourceType)
-	ioutil.WriteFile(filepath.Join(outputPath, "_redirects"), []byte(rewrites), 0664)
+	rewrites := fmt.Sprintf("/%s.json page=:p /%s-:p.json 200!\n", *resourceType, *resourceType)
+	rewrites += fmt.Sprintf("/%s.json /%s-0.json 200!\n", *resourceType, *resourceType)
+	ioutil.WriteFile(filepath.Join(*outputPath, "_redirects"), []byte(rewrites), 0664)
 }
 
 type Document struct {
@@ -92,12 +109,12 @@ type Object struct {
 	Attributes map[string]string `json:"attributes"`
 }
 
-func buildPaginatedIndexDocuments(objType string, header []string, rows [][]string, pageSize int) []Document {
+func buildPaginatedIndexDocuments(host string, objType string, header []string, rows [][]string, idKeys []string, pageSize int) []Document {
 	var docs []Document
 
 	var objs []Object
 	for _, row := range rows {
-		obj := buildObject(objType, header, row)
+		obj := buildObject(objType, header, row, idKeys)
 
 		objs = append(objs, obj)
 
@@ -125,25 +142,25 @@ func buildPaginatedIndexDocuments(objType string, header []string, rows [][]stri
 	for i := range docs {
 		links := make(map[string]string)
 		if i > 0 {
-			links["prev"] = fmt.Sprintf("%s/%s.json?page=%d", HOST, objType, i-1)
+			links["prev"] = fmt.Sprintf("%s/%s.json?page=%d", host, objType, i-1)
 		}
 		if i < len(docs)-1 {
-			links["next"] = fmt.Sprintf("%s/%s.json?page=%d", HOST, objType, i+1)
+			links["next"] = fmt.Sprintf("%s/%s.json?page=%d", host, objType, i+1)
 		}
 
-		links["first"] = fmt.Sprintf("%s/%s.json?page=0", HOST, objType)
-		links["last"] = fmt.Sprintf("%s/%s.json?page=%d", HOST, objType, len(docs)-1)
+		links["first"] = fmt.Sprintf("%s/%s.json?page=0", host, objType)
+		links["last"] = fmt.Sprintf("%s/%s.json?page=%d", host, objType, len(docs)-1)
 		docs[i].Links = links
 	}
 
 	return docs
 }
 
-func buildObjectDocuments(objType string, header []string, rows [][]string) []Document {
+func buildObjectDocuments(objType string, header []string, rows [][]string, idKeys []string) []Document {
 	var docs []Document
 
 	for _, row := range rows {
-		obj := buildObject(objType, header, row)
+		obj := buildObject(objType, header, row, idKeys)
 		doc := Document{Data: []Object{obj}}
 		docs = append(docs, doc)
 	}
@@ -151,11 +168,15 @@ func buildObjectDocuments(objType string, header []string, rows [][]string) []Do
 	return docs
 }
 
-func buildObject(objType string, header []string, row []string) Object {
+func buildObject(objType string, header []string, row []string, idKeys []string) Object {
 	obj := Object{Type: objType}
 	kv := row2map(header, row)
-	obj.ID = kv["id"]
-	delete(kv, "id")
+	id := make([]string, 0)
+	for _, key := range idKeys {
+		id = append(id, kv[key])
+		delete(kv, key)
+	}
+	obj.ID = strings.Join(id, ".")
 	obj.Attributes = kv
 
 	return obj
