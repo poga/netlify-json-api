@@ -1,17 +1,17 @@
-# netlify-rest-api
+# netlify-json-api
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/poga/netlify-rest-api)](https://goreportcard.com/report/github.com/poga/netlify-rest-api)
+[![Go Report Card](https://goreportcard.com/badge/github.com/poga/netlify-json-api)](https://goreportcard.com/report/github.com/poga/netlify-json-api)
 
-Publish your data as static RESTful JSON API to [Netlify](https://netlify.com).
+Publish your data as a RESTful JSON API on [Netlify](https://netlify.com).
 
 ## Install
 
-`go get github.com/poga/netlify-rest-api`
+`go get github.com/poga/netlify-json-api`
 
 ## Usage
 
 ```
-$ netlify-rest-api -h
+$ netlify-json-api -h
   -file string
     	data file
   -host string
@@ -29,9 +29,9 @@ $ netlify-rest-api -h
 Use our example:
 
 ```
-$ git clone git@github.com:poga/netlify-rest-api.git
-$ cd netlify-rest-api/example
-$ netlify-rest-api -file users.csv -host http://YOUR-NETLIFY-DOMAIN -out out
+$ git clone git@github.com:poga/netlify-json-api.git
+$ cd netlify-json-api/example
+$ netlify-json-api -file users.csv -host http://YOUR-NETLIFY-DOMAIN -out out
 ```
 
 Then, deploy `out` to netlify.
