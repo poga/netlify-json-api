@@ -174,9 +174,8 @@ func buildObject(objType string, header []string, row []string, idKeys []string)
 	id := make([]string, 0)
 	for _, key := range idKeys {
 		id = append(id, kv[key])
-		delete(kv, key)
 	}
-	obj.ID = strings.Join(id, ".")
+	obj.ID = strings.Join(id, "-")
 	obj.Attributes = kv
 
 	return obj
