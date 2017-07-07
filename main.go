@@ -95,6 +95,12 @@ func main() {
 	rewrites := fmt.Sprintf("/%s.json page=:p /%s-:p.json 200!\n", *resourceType, *resourceType)
 	rewrites += fmt.Sprintf("/%s.json /%s-0.json 200!\n", *resourceType, *resourceType)
 	ioutil.WriteFile(filepath.Join(*outputPath, "_redirects"), []byte(rewrites), 0664)
+
+	// build _headers
+	headers := fmt.Sprintf("/*")
+	headers += fmt.Sprintf("  Access-Control-Allow-Origin: *")
+	headers += fmt.Sprintf("  content-type: application/json; charset=utf-8")
+	ioutil.WriteFile(filepath.Join(*outputPath, "_headers"), []byte(headers), 0664)
 }
 
 type Document struct {
