@@ -110,9 +110,9 @@ type Document struct {
 }
 
 type Object struct {
-	Type       string            `json:"type"`
-	ID         string            `json:"id"`
-	Attributes map[string]string `json:"attributes"`
+	Type       string                 `json:"type"`
+	ID         string                 `json:"id"`
+	Attributes map[string]interface{} `json:"attributes"`
 }
 
 func buildPaginatedIndexDocuments(host string, objType string, header []string, rows [][]string, idKeys []string, pageSize int) []Document {
@@ -179,7 +179,7 @@ func buildObject(objType string, header []string, row []string, idKeys []string)
 	kv := row2map(header, row)
 	id := make([]string, 0)
 	for _, key := range idKeys {
-		id = append(id, kv[key])
+		id = append(id, kv[key].(string))
 	}
 	obj.ID = strings.Join(id, "-")
 	obj.Attributes = kv
@@ -188,10 +188,27 @@ func buildObject(objType string, header []string, row []string, idKeys []string)
 }
 
 // row2map normalize each columns name and build a map for the row
-func row2map(header []string, row []string) map[string]string {
-	r := make(map[string]string)
+func row2map(header []string, row []string) map[string]interface{} {
+	r := make(map[string]interface{})
 	for i, h := range header {
-		r[strings.ToLower(h)] = row[i]
+		if looksLikeJSONObject(row[i]) || looksLikeJSONArray(row[i]) {
+			var m interface{}
+			err := json.Unmarshal([]byte(row[i]), &m)
+			if err != nil {
+				log.Fatal(err)
+			}
+			r[strings.ToLower(h)] = m
+		} else {
+			r[strings.ToLower(h)] = row[i]
+		}
 	}
 	return r
+}
+
+func looksLikeJSONObject(str string) bool {
+	return strings.HasPrefix(str, "{") && strings.HasSuffix(str, "}")
+}
+
+func looksLikeJSONArray(str string) bool {
+	return strings.HasPrefix(str, "[") && strings.HasSuffix(str, "]")
 }
