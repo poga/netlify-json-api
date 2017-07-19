@@ -114,8 +114,8 @@ func main() {
 				}
 			}
 		}
-		rewrites += fmt.Sprintf("/%s.json filter[%s]=:filter page=:p /%s-filtered/:filter/:p.json 200!\n", *resourceType, filterKey, filterKey)
-		rewrites += fmt.Sprintf("/%s.json filter[%s]=:filter /%s-filtered/:filter/0.json 200!\n", *resourceType, filterKey, filterKey)
+		rewrites += fmt.Sprintf("/%s.json %s=:filter page=:p /%s-filtered/:filter/:p.json 200!\n", *resourceType, filterKey, filterKey)
+		rewrites += fmt.Sprintf("/%s.json %s=:filter /%s-filtered/:filter/0.json 200!\n", *resourceType, filterKey, filterKey)
 	}
 	rewrites += fmt.Sprintf("/%s.json page=:p /%s-:p.json 200!\n", *resourceType, *resourceType)
 	rewrites += fmt.Sprintf("/%s.json /%s-0.json 200!\n", *resourceType, *resourceType)
@@ -182,14 +182,14 @@ func buildFilteredDocumentsForColumn(host string, objType string, header []strin
 
 			links := make(map[string]string)
 			if i > 0 {
-				links["prev"] = fmt.Sprintf("%s/%s.json?filter[%s]=%s&page=%d", host, objType, filterKey, idx, i-1)
+				links["prev"] = fmt.Sprintf("%s/%s.json?%s=%s&page=%d", host, objType, filterKey, idx, i-1)
 			}
 			if i < len(docs)-1 {
-				links["next"] = fmt.Sprintf("%s/%s.json?filter[%s]=%s&page=%d", host, objType, filterKey, idx, i+1)
+				links["next"] = fmt.Sprintf("%s/%s.json?%s=%s&page=%d", host, objType, filterKey, idx, i+1)
 			}
 
-			links["first"] = fmt.Sprintf("%s/%s.json?filter[%s]=%s&page=0", host, objType, filterKey, idx)
-			links["last"] = fmt.Sprintf("%s/%s.json?filter[%s]=%s&page=%d", host, objType, filterKey, idx, len(docs)-1)
+			links["first"] = fmt.Sprintf("%s/%s.json?%s=%s&page=0", host, objType, filterKey, idx)
+			links["last"] = fmt.Sprintf("%s/%s.json?%s=%s&page=%d", host, objType, filterKey, idx, len(docs)-1)
 			docs[i].Links = links
 		}
 	}
