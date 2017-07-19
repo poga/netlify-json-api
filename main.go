@@ -93,17 +93,15 @@ func main() {
 		}
 	}
 	// build _redirects
-	rewrites := fmt.Sprintf("/%s.json page=:p /%s-:p.json 200!\n", *resourceType, *resourceType)
-	rewrites += fmt.Sprintf("/%s.json /%s-0.json 200!\n", *resourceType, *resourceType)
-
+	rewrites := ""
 	for _, filterKey := range filterKeysSlice {
 		filteredDocs := buildFilteredDocumentsForColumn(*host, *resourceType, header, rows, idKeysSlice, *perPage, filterKey)
 
 		for idx, docs := range filteredDocs {
 			for i, doc := range docs {
-				outDir := filepath.Join(*outputPath, *resourceType+"-filtered", idx)
+				outDir := filepath.Join(*outputPath, filterKey+"-filtered", idx)
 				os.MkdirAll(outDir, os.ModePerm)
-				out := filepath.Join(outDir, fmt.Sprintf("%s-%d.json", idx, i))
+				out := filepath.Join(outDir, fmt.Sprintf("%d.json", i))
 				file, err := os.Create(out)
 				if err != nil {
 					log.Fatal(err)
@@ -115,18 +113,19 @@ func main() {
 					log.Fatal(err)
 				}
 			}
-			rewrites += fmt.Sprintf("/%s.json filter[%s]=:filter page=:p /%s-filtered/:filter/%s-:p.json 200!\n", *resourceType, *resourceType, filterKey, idx)
-			rewrites += fmt.Sprintf("/%s.json filter[%s]=:filter /%s-filtered/:filter/%s-0.json 200!\n", *resourceType, *resourceType, filterKey, idx)
 		}
-
+		rewrites += fmt.Sprintf("/%s.json filter[%s]=:filter page=:p /%s-filtered/:filter/:p.json 200!\n", *resourceType, filterKey, filterKey)
+		rewrites += fmt.Sprintf("/%s.json filter[%s]=:filter /%s-filtered/:filter/0.json 200!\n", *resourceType, filterKey, filterKey)
 	}
+	rewrites += fmt.Sprintf("/%s.json page=:p /%s-:p.json 200!\n", *resourceType, *resourceType)
+	rewrites += fmt.Sprintf("/%s.json /%s-0.json 200!\n", *resourceType, *resourceType)
 
 	ioutil.WriteFile(filepath.Join(*outputPath, "_redirects"), []byte(rewrites), 0666)
 
 	// build _headers
-	headers := fmt.Sprintf("/*")
-	headers += fmt.Sprintf("  Access-Control-Allow-Origin: *")
-	headers += fmt.Sprintf("  content-type: application/json; charset=utf-8")
+	headers := fmt.Sprintf("/*\n")
+	headers += fmt.Sprintf("  Access-Control-Allow-Origin: *\n")
+	headers += fmt.Sprintf("  content-type: application/json; charset=utf-8\n")
 	ioutil.WriteFile(filepath.Join(*outputPath, "_headers"), []byte(headers), 0666)
 }
 
